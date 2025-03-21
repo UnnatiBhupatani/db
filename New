@@ -1,0 +1,33 @@
+use Illuminate\Support\Facades\File;
+
+public function generatePdf(Request $request)
+{
+    $chartImage = $request->input('chartimage'); // Get the Base64 image
+
+    if (preg_match('/^data:image\/(\w+);base64,/', $chartImage, $type)) {
+        $chartImage = substr($chartImage, strpos($chartImage, ',') + 1);
+        $type = strtolower($type[1]); // Extract image type (png, jpg, etc.)
+
+        // Store the image in the public folder
+        $imagePath = public_path("charts/chart.$type");
+
+        // Ensure directory exists
+        if (!File::exists(public_path("charts"))) {
+            File::makeDirectory(public_path("charts"), 0755, true);
+        }
+
+        File::put($imagePath, base64_decode($chartImage)); // Save the file
+
+        // Convert path to a URL
+        $chartUrl = asset("charts/chart.$type");
+    } else {
+        $chartUrl = null; // Handle case where image is not valid
+    }
+
+    // Pass the image URL to the view
+    $pdf = \Barryvdh\Snappy\Facades\SnappyPdf::loadView('pdfview', [
+        'chartPath' => $chartUrl,
+    ]);
+
+    return $pdf->download('report.pdf');
+}
