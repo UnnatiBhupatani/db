@@ -1,0 +1,83 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Requests\customerRegisterRequest;
+use App\Models\AssignCustomer;
+use App\Models\Comments;
+use App\Models\Contact;
+use App\Models\ContactHistory;
+use App\Models\CustomerDetails;
+use Illuminate\Http\Request;
+
+class CustomerDetailController extends Controller
+{
+
+    public function index(Request $request)
+    {
+
+        $limit = $request->input('record', 10);
+        // // $customer=CustomerDetails::paginate($limit)->appends(request()->query());
+        // $customer = CustomerDetails::paginate($limit)->appends(request()->all());
+        $customers = CustomerDetails::all();
+
+        //$json = json_encode($customers);
+
+        return view('customerDetail',$customers);
+
+
+    }
+    public function axiosData(Request $request)
+    {
+         $limit = $request->input('record', 10);
+        $customers = CustomerDetails::all();
+        // $json = json_encode($customer);
+        // dd($json);
+        return response()->json($customers);
+
+    }
+
+    public function delete($id)
+    {
+        $customer = CustomerDetails::find($id);
+        $history  = ContactHistory::where('customer_id', $id);
+        $contact  = Contact::where('customer_id', $id);
+        $assign   = AssignCustomer::where('customer_id', '=', $id);
+        $comments = Comments::where('customer_id', '=', $id);
+        $comments->delete();
+        $assign->delete();
+        $contact->delete();
+        $history->delete();
+        $customer->delete();
+
+        return response()->json(['message'=>'deleted'],201);
+    }
+    public function edit($id)
+    {
+        $customer     = CustomerDetails::all();
+        $editCustomer = CustomerDetails::find($id);
+        // dd($editCustomer->customer_address);
+
+        return response()->json($editCustomer);
+
+        // return view('customer')
+        //     ->with('editCustomer', $editCustomer)
+        //     ->with('customer', $customer);
+    }
+
+    public function update(customerRegisterRequest $request, $id)
+    {
+        $validated = $request->validated();
+
+        $update                     = CustomerDetails::find($id);
+        $update->customer_FirstName = $request->customer_FirstName;
+        $update->customer_LastName  = $request->customer_LastName;
+        $update->customer_email     = $request->customer_email;
+        $update->customer_gender    = $request->customer_gender;
+        $update->customer_city      = $request->customer_city;
+        $update->customer_address   = $request->customer_address;
+        $update->customer_phoneNo   = $request->customer_phoneNo;
+
+        $update->save();
+        return redirect('/customer/details');
+    }
+}
