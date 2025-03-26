@@ -1,0 +1,384 @@
+@extends('layout.master')
+@section('content')
+
+    <h2>Customer details</h2><br>
+    <form method="post" action="">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal"
+            onclick="resetForm()"><i class="fa-solid fa-plus"></i>Add Customer</button><br><br>
+
+{{-- {{ dd($data) }} --}}
+<input type="hidden" name="user_id" id="user_id" value="{{auth()->user()->id}}">
+        <input type="text" name="customer_FirstName" class='p-1 rounded' id="customer_FirstName"
+            placeholder="Search FirstName " value="{{ request()->query('customer_FirstName') }}">
+        <input type="text" name="customer_LastName" class='p-1 rounded' id="customer_LastName"
+            placeholder="Search LastName" value="{{ request()->query('customer_LastName') }}">
+        <input type="email" name="customer_email" class='p-1 rounded' id="customer_email" placeholder="Search email" value="{{ request()->query('customer_email') }}">
+        <input type="text" name="customer_address" class='p-1 rounded' id="customer_address"
+            placeholder="Search address" value="{{ request()->query('customer_address') }}">
+        <input type="text" name="customer_phoneNo" class='p-1 rounded' id="customer_phoneNo"
+            placeholder="Search Phone No ">
+
+        <select name="gender" id="gender" class='p-1 rounded' style="width: 90px; height: 35px;">
+            <option value="" >Gender</option>
+            <option value="male" {{ request()->query('customer_gender') == 'male' ? 'selected':'' }}>male</option>
+            <option value="female" {{ request()->query('customer_gender') == 'female' ? 'selected':'' }}>female</option>
+        </select>
+
+        <select name="city" id="city" class='p-1 rounded' style="height: 35px; width: 120px;">
+            <option value="">--select city--</option>
+            <option value="ahmedabad" {{ request()->query('customer_city') == 'ahmedabad' ? 'selected':'' }}>ahmedabad</option>
+            <option value="baroda" {{ request()->query('customer_city') == 'baroda' ? 'selected':'' }}>baroda</option>
+            <option value="junagadh" {{ request()->query('customer_city') == 'junagadh' ? 'selected':'' }}>junagadh</option>
+        </select>
+
+        <button type="button" class="btn btn-primary" name="apply" id="apply"> Apply Filter<i
+                class="fa-solid fa-filter"></i></button>
+
+        <a  class="btn btn-primary" name="refresh" id="refresh" href="{{ url('customer/details') }}"> <i class="fa fa-refresh" aria-hidden="true"></i></a><br><br>
+
+    </form>
+    <label style="margin-left:10px">Records: </label>
+    <select name="record" id="record" class=' rounded' style="height: 30px; width: 90px; ">
+        <option value="10">--record--</option>
+        <option value="5" {{ request('record') == 5 ? 'selected' : '' }}>5</option>
+        <option value="15" {{ request('record') == 15 ? 'selected' : '' }}>15</option>
+        <option value="20" {{ request('record') == 20 ? 'selected' : '' }}>20</option>
+    </select><br><br>
+    <table class=" table ">
+        <thead>
+            <tr>
+               {{-- <th>username</th> --}}
+                <th> Name</th>
+                <th>Email</th>
+                <th>Gender</th>
+                <th>Phone No</th>
+                <th>City</th>
+                <th>Address</th>
+
+                <th>action</th>
+            </tr>
+        </thead>
+      
+        <tbody id="customerTable">
+           
+           
+           
+        </tbody>
+    </table>
+    <div class="modal fade " id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="customerModalLabel">Customer Register</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                    <div style=" width: 100%; border: solid 1px rgb(212, 206, 206); padding:30px;  margin-bottom: 30px; ">
+                        <form method="post" id="customerForm" action="">
+                            @csrf
+                            {{-- <h2>Customer Register</h2><br><br> --}}
+                            <input type="hidden" name="customer_id" id="customer_id"
+                                value="{{ isset($editCustomer) ? $editCustomer->id : '' }}">
+                            First Name: <input type="text" name="customer_FirstName" id="customer_fname"
+                                class='form-control'
+                                value={{ old('customer_FirstName', isset($editCustomer) ? $editCustomer->customer_FirstName : '') }}>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_FirstName')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+
+                            Last Name: <input type="text" name="customer_LastName" id="customer_lname"
+                                class='form-control'
+                                value={{ old('customer_LastName', isset($editCustomer) ? $editCustomer->customer_LastName : '') }}>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_LastName')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+
+                            Email:<input type="text" name="customer_email" id="email" class='form-control'
+                                value={{ old('customer_email', isset($editCustomer) ? $editCustomer->customer_email : '') }}>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_email')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+
+                            Gender:
+                            <input type="radio" name="customer_gender" id="customer_gender" value='male'
+                                {{ old('customer_gender', $editCustomer->customer_gender ?? '') == 'male' ? 'checked' : '' }}>Male
+                            <input type="radio" name="customer_gender" id="customer_gender" value='female'
+                                {{ old('customer_gender', $editCustomer->customer_gender ?? '') == 'female' ? 'checked' : '' }}>female
+                            <span style="color:red;" class="error-message">
+                                @error('customer_gender')
+                                    {{ $message }}
+                                @enderror
+                            </span><br><br>
+
+                            Phone No:<input type="text" name="customer_phoneNo" id="phoneNo" class='form-control'
+                                value={{ old('customer_phoneNo', isset($editCustomer) ? $editCustomer->customer_phoneNo : '') }}>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_phoneNo')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+
+                            City:<select class="form-control" name='customer_city' id="customer_city">
+                                <option value='' selected>--select City--</option>
+                                <option value='ahmedabad'
+                                    {{ old('customer_city', $editCustomer->customer_city ?? '') == 'ahmedabad' ? 'selected' : '' }}>
+                                    ahmedabad
+                                </option>
+                                <option value='baroda'
+                                    {{ old('customer_city', $editCustomer->customer_city ?? '') == 'baroda' ? 'selected' : '' }}>
+                                    baroda
+                                </option>
+                                <option value="junagadh"
+                                    {{ old('customer_city', $editCustomer->customer_city ?? '') == 'junagadh' ? 'selected' : '' }}>
+                                    junagadh
+                                </option>
+                            </select>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_city')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+
+                            Address:
+                            <textarea name="customer_address" id="address" class='form-control'>{{ old('customer_address', isset($editCustomer) ? $editCustomer->customer_address : '') }}</textarea>
+                            <span style="color:red;" class="error-message">
+                                @error('customer_address')
+                                    {{ $message }}
+                                @enderror
+                            </span><br>
+                            <button class='bg-secondary text-light rounded p-2' id="submit">submit</button>
+                            <a class="btn btn-primary" href="{{ url('/customer/details') }}">show Customer</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+            axios.get('detail_data')
+                .then(function(response) {
+                    let customers = response.data;
+                let tableBody = document.getElementById('customerTable');
+                tableBody.innerHTML = ''; 
+
+                customers.forEach(customer => {
+                    let row = `<tr>
+                       
+                        <td>${customer.customer_FirstName}  ${customer.customer_LastName}  </td>
+                        <td>${customer.customer_email}</td>
+                        <td>${customer.customer_gender}</td>
+                        <td>${customer.customer_phoneNo}</td>
+                        <td>${customer.customer_city}</td>
+                        <td>${customer.customer_address}</td>
+                        <td>
+                        <button class="btn border-secondary edit-btn" data-id="${customer.id}"
+                            data-FirstName="${customer.customer_FirstName}"
+                            data-LastName=" ${customer.customer_LastName}"
+                            data-email="${customer.customer_email}"
+                            data-address="${customer.customer_address}"
+                            data-gender="${customer.customer_gender}"
+                            data-phone="${customer.customer_phoneNo}" data-city="${customer.customer_city}"
+                            data-bs-toggle="modal" data-bs-target="#customerModal" onclick="editResetError()">
+                            <i class="fas fa-edit"></i>
+                        </button>
+
+                        <form id="delete-form"
+                            action="{{ url('/customer/delete/') }}" method="POST"
+                            style="display: inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger"
+                                onclick="return confirmDelete(${customer.id});"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                    </tr>`;
+                    tableBody.innerHTML += row;
+                });
+                })
+                .catch(function(error) {
+                    // handle error
+                    console.log(error);
+                });
+
+            document.getElementById('customerForm').addEventListener("submit", function(event) {
+            event.preventDefault();
+        // console.log('hii');
+            let formData = {
+                user_id:document.getElementById('user_id').value,
+                customer_FirstName : document.getElementById("customer_fname").value,
+                customer_LastName : document.getElementById("customer_lname").value,
+                customer_email : document.getElementById("email").value,
+                 customer_gender : document.querySelector('input[name="customer_gender"]:checked ')?.value,
+                 customer_phoneNo : document.getElementById("phoneNo").value,
+                 customer_city : document.getElementById("customer_city").value,
+                customer_address : document.getElementById("address").value,
+            }
+        // console.log(formData);
+            axios.post("add", formData)
+                .then(function(response) {
+                    window.location.href="{{url('customer/details')}}";
+                })
+                .catch(function(error) {
+                    console.log(error);
+                });
+        });
+
+
+        function editResetError() {
+            document.querySelectorAll('.error-message').forEach(function(span) {
+                span.innerText = "";
+            });
+        }
+
+        function resetForm() {
+            document.getElementById("customerModalLabel").innerText = "Add Customer";
+            document.getElementById("customerForm").action = "";
+            document.getElementById("customer_id").value = "";
+            document.getElementById("customer_fname").value = "";
+            document.getElementById("customer_lname").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("phoneNo").value = "";
+            document.getElementById("customer_city").value = "";
+            document.getElementById("address").value = "";
+
+            let genderRadios = document.getElementsByName("customer_gender");
+            genderRadios.forEach(radio => radio.checked = false);
+
+            document.querySelectorAll('.error-message').forEach(function(span) {
+                span.innerText = "";
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+
+
+            document.querySelectorAll(".edit-btn").forEach(button => {
+                button.addEventListener("click", function() {
+
+
+                    let customerId = this.getAttribute("data-id");
+                    let First_name = this.getAttribute("data-FirstName");
+                    let Last_name = this.getAttribute("data-LastName");
+                    let email = this.getAttribute("data-email");
+                    let address = this.getAttribute("data-address");
+                    let gender = this.getAttribute("data-gender");
+                    let phone = this.getAttribute("data-phone");
+                    let city = this.getAttribute("data-city");
+
+
+                    document.getElementById("customerModalLabel").innerText = "Edit Customer";
+                    document.getElementById("customerForm").action =
+                        "{{ url('customer/update/') }}/" + customerId;
+                    document.getElementById("submit").innerText = "Edit";
+                    document.getElementById("customer_id").value = customerId;
+                    document.getElementById("customer_fname").value = First_name;
+                    document.getElementById("customer_lname").value = Last_name;
+                    document.getElementById("email").value = email;
+                    // document.getElementById("customer_gender").value = gender;
+                    document.getElementById("phoneNo").value = phone;
+                    document.getElementById("customer_city").value = city;
+                    document.getElementById("address").value = address;
+
+
+                    let genderRadios = document.getElementsByName("customer_gender");
+                    genderRadios.forEach(radio => {
+                        if (radio.value === gender) {
+                            radio.checked = true;
+                        }
+
+
+                    });
+                });
+            });
+
+
+            @if ($errors->any())
+                var myModal = new bootstrap.Modal(document.getElementById('customerModal'));
+                myModal.show();
+            @endif
+        });
+
+
+        function confirmDelete(customerId) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You won't be able to revert this!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes, permanently delete it!"
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("delete-form-" + customerId).submit();
+                    Swal.fire('Deleted!', 'Your task has been deleted.', 'success');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            let FirstName = document.getElementById('customer_FirstName');
+            let LastName = document.getElementById('customer_LastName');
+            let email = document.getElementById('customer_email');
+            let address = document.getElementById('customer_address');
+            let phone = document.getElementById('customer_phoneNo');
+            let gender = document.getElementById('gender');
+            let city = document.getElementById('city');
+            let apply = document.getElementById('apply');
+
+            document.getElementById("record").addEventListener("change", function() {
+                window.location.href = "?record=" + this.value;
+            });
+
+            function filter() {
+                let search_first_name = FirstName.value.toLowerCase();
+                let search_last_name = LastName.value.toLowerCase();
+                let searchEmail = email.value.toLowerCase();
+                let searchAddress = address.value.toLowerCase();
+                let searchPhone = phone.value;
+                let selectedGender = gender.value;
+                let selectedCity = city.value;
+                let queryParams = new URLSearchParams(window.location.search);
+                let rows = document.querySelectorAll("#customerTable tr");
+
+                if (search_first_name) {
+                    queryParams.set("customer_FirstName", search_first_name);
+                } else if (search_last_name) {
+                    queryParams.set("customer_LastName", search_last_name);
+                } else if (searchEmail) {
+                    queryParams.set("customer_email", searchEmail);
+                } else if (searchAddress) {
+                    queryParams.set("customer_address", searchAddress);
+                } else if (searchPhone) {
+                    queryParams.set("customer_phoneNo", searchPhone);
+                } else if (selectedGender) {
+                    queryParams.set("customer_gender", selectedGender);
+                } else if (selectedCity) {
+                    queryParams.set("customer_city", selectedCity);
+                }
+
+                queryParams.set("page", 1);
+                window.location.search = queryParams.toString();
+            }
+            apply.addEventListener("click", filter);
+        });
+    </script>
+
+    <div class="pagination">
+        {{-- {{ $customer->links('pagination::bootstrap-5') }} --}}
+
+    </div>
+
+
+@stop
