@@ -1,0 +1,97 @@
+<?php
+namespace App\Http\Controllers;
+
+use App\Http\Requests\CommentRequest;
+use App\Models\AssignCustomer;
+use App\Models\Comments;
+use App\Models\CustomerDetails;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
+class CommentsController extends Controller
+{
+    public function index($id)
+    {
+        $customer = AssignCustomer::with('customers.comments')->where('customer_id', '=', $id)->get();
+
+//  dd($customer->user_id);
+        $customerComments = CustomerDetails::with('comments')->where('id', '=', $id)->get();
+
+        // $customer=CustomerDetails::with('comments')->where('id','=',$id)->get();
+        $LoginCustomer = AssignCustomer::with('customers.comments')->where('user_id', '=', Auth::user()->id)->get();
+        $customerData  = CustomerDetails::all();
+
+        return view('DisplayComments')
+            ->with('customer', $customer)
+            ->with('customerComments', $customerComments)
+            ->with('LoginCustomer', $LoginCustomer)
+            ->with('customerData', $customerData);
+
+    }
+    public function delete($id)
+    {
+        // dd(1);
+        // $customer = AssignCustomer::with('customers.comments')->where('user_id', '=', $id)->get();
+        $LoginCustomer = AssignCustomer::with('customers.comments')->where('user_id', '=', Auth::user()->id)->get();
+
+        // $history   = ContactHistory::with('users')->where('customer_id', '=', $id)->get();
+        $comments = Comments::with('customer')->where('customer_id', '=', $id)->get();
+
+        $DeleteComment = Comments::find($id);
+        $DeleteComment->delete();
+
+        return back()
+            ->with('comments', $comments)
+            // ->with('customer', $customer)
+            ->with('LoginCustomer', $LoginCustomer);
+
+        // ->with('history', $history);
+    }
+    public function add(CommentRequest $request, $id)
+    {
+
+        $validated = $request->validated();
+        $customer  = AssignCustomer::with('customers.comments')->where('customer_id', '=', $id)->get();
+
+        $customerComments = CustomerDetails::with('comments')->where('id', '=', $id)->get();
+
+        $LoginCustomer = AssignCustomer::with('customers.comments')->where('user_id', '=', Auth::user()->id)->get();
+        // dd($LoginCustomer);
+        // dd(1);
+        $customerData = CustomerDetails::with('comments')->where('id', '=', $id)->get();
+
+        $comments          = new Comments();
+        $comments->user_id = Auth::user()->id;
+
+        $comments->customer_id = $id;
+        $comments->comments    = $request->comment;
+        $comments->save();
+
+        return redirect('customers/' . $id)
+
+            ->with('customerData', $customerData)
+            ->with('LoginCustomer', $LoginCustomer)
+            ->with('customerComments', $customerComments)
+            ->with('customer', $customer);
+    }
+
+    public function showCustomer($id)
+    {
+
+        $customer = AssignCustomer::with('customers.comments')->where('customer_id', '=', $id)->get();
+
+        //  dd($customer->user_id);
+        $customerComments = CustomerDetails::with('comments')->where('id', '=', $id)->get();
+        $LoginCustomer    = AssignCustomer::with('customers.comments')->where('user_id', '=', Auth::user()->id)->get();
+        $customerData     = CustomerDetails::all();
+        $comments         = Comments::all();
+        //  dd($customer);
+        return view('DisplayComments')
+            ->with('customer', $customer)
+            ->with('comments', $comments)
+            ->with('customerComments', $customerComments)
+            ->with('LoginCustomer', $LoginCustomer)
+            ->with('customerData', $customerData);
+
+    }
+}
