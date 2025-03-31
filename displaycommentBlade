@@ -1,0 +1,155 @@
+@extends('layout.master')
+@section('content')
+    <h3 style="margin-top: 20px;  ">Comments:</h3><br>
+    <div style="border-top:1px solid gray; margin-bottom: 50px; padding:20px;">
+
+    <div class="container-fluid"  >
+        <div class="row">
+        <div style="width:300px;">
+            <div class="col"
+                style="border-right:1px solid rgb(100, 124, 245);  height: 760px;">
+                <ul name="executive" id="executive" style="height:700px;  overflow-y:auto; ">
+                    <br>
+                    <h4>Customers:</h4>
+                    @if (auth()->user()->role->permission()->where('permission_name', 'manage_comments')->exists())
+                    <div class="row">
+                        <div class="col-9">
+                    <input type="text" name="customer" id="customer" placeholder="Search Customer" class="form-control" >
+                        </div>
+                        <div class="col">
+                    <a class="btn btn-primary p-1" name="apply" id="apply" ><i class="fa-solid fa-filter"></i></a><br><br>
+                        </div>
+                    </div>
+                    {{-- <i class="fa-solid fa-magnifying-glass"></i> --}}
+                        @foreach ($customerData as $customers)
+                            <div class="row">
+                                <div class="col-2">
+
+                                    <img src="{{ asset('assets/img/newProfile.png') }}" alt="Profile" width="30"
+                                        height="30" class="rounded-circle me-2">
+                                </div>
+                                <div class="col">
+                                    <a href="{{ url('customers/' . $customers->id) }}"  id="customername"  data-customer="{{ strtolower($customers->customer_FirstName ) }}">{{ $customers->customer_FirstName }}
+                                        {{ $customers->customer_LastName }}</a><br><br>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                    @if (auth()->user()->role->permission()->where('permission_name', 'show_comments')->exists())
+                        @foreach ($LoginCustomer as $customers)
+                            <div class="row">
+                                <div class="col-2">
+
+                                    <img src="{{ asset('assets/img/newProfile.png') }}" alt="Profile" width="30"
+                                        height="30" class="rounded-circle me-2">
+                                </div>
+                                <div class="col">
+                                    <a href="{{ url('customers/' . $customers->customer_id) }}">{{ $customers->customers->customer_FirstName }}
+                                        {{ $customers->customers->customer_LastName }}</a><br><br>
+                                </div>
+                            </div>
+                        @endforeach
+                    @endif
+                </ul>
+            </div>
+        </div>
+            <div class="col-8">
+                <div class="container-fluid">
+                    <div class="row">
+                        <h4 class="text-secondary fw-bold">please select Customers.........</h4>
+
+                        @if (auth()->user()->role->permission()->where('permission_name', 'manage_comments')->exists())
+                            @foreach ($customer as $customers)
+                        {{-- {{ dd($customers) }} --}}
+                                <h5>Assigned to :{{ $customers->users->username }} </h5>
+                            @endforeach
+                        @endif
+
+                        @foreach ($customer as $customers)
+                        {{-- {{ dd($customers->customers->customer_FirstName) }} --}}
+                            <h4 style="margin-top: 50px;">{{ $customers->customers->customer_FirstName }}
+                                {{ $customers->customers->customer_LastName }} </h4>
+
+                                <form method="get"
+                                    action="{{ url('/customer/comments/add/' . $customers->customer_id) }}">
+                                    {{-- {{dd($customers->customers->id)}} --}}
+                                    @csrf
+                                    {{-- {{ dd($customers->customers->customer_FirstName ) }} --}}
+                                    <input type="text" class="form-control" name="comment" placeholder="Add Comment" style="height: 60px;">
+                                    <span style="color:red">
+                                        @error('comment')
+                                            {{ $message }}
+                                        @enderror
+                                    </span><br>
+
+                                    <br>
+
+                                    <button class="btn btn-success">Add Comment <i class="fa-solid fa-plus"></i></button><br><br>
+                                </form>
+
+                                <div style="height:480px;  overflow-y: auto;">
+                                @foreach ($customerComments as $c)
+                                    {{-- {{ dd($c) }} --}}
+
+                                @if(!empty($c->comments) )
+                                @foreach ($c->comments as $new)
+                                        {{-- {{ dd($new->users->username) }} --}}
+
+                                  <div class="card" style="margin-top: 20px; ">
+                                    <div class="card-body">
+                                      <h6 class="card-title text-secondary">{{ $new->users->username }}</h6>
+                                      <div class="row">
+                                        <div class="col">
+                                      <h5 class="card-text fw-bold">{{ $new->comments }}</h5>
+                                        </div>
+                                        <div class="col-4">
+                                      @if (auth()->user()->id == $new->user_id)
+                                      {{-- {{ dd($new->id) }} --}}
+                                            <a href="{{ url('/customer/comments/delete/' . $new->id) }}">
+                                                <i class="fa-solid fa-trash bg-danger text-light p-2 position-absolute top-0 end-0" ></i></a>
+                                      @endif
+                                        </div>
+                                      </div>
+
+                                    </div>
+                                  </div>
+                                    @endforeach
+                                  @endif
+                                  @endforeach
+                                  </div>
+                            </div>
+                        </div>
+                    </div><br>
+                </div>
+            @endforeach
+         </div>
+
+     </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    let customerName = document.getElementById('customer');
+    let apply = document.getElementById('apply');
+
+    function filter() {
+        let selectedCustomer = customerName.value.toLowerCase();
+        let rows = document.querySelectorAll('#customername');
+
+        rows.forEach(row => {
+            let customer = row.getAttribute('data-customer');
+            let showRow = true;
+
+            if (selectedCustomer !== "" && customer !== selectedCustomer) {
+                showRow = false;
+            }
+
+            row.closest('.row').style.display = showRow ? "" : "none";
+        });
+    }
+
+    apply.addEventListener("click", filter);
+});
+
+    </script>
+@stop
